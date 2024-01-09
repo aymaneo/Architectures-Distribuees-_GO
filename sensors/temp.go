@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -60,7 +61,7 @@ func simulateSensorData(sensorID int, airportCode, measurement string, valueRang
 		AirportCode: airportCode,
 		Measurement: measurement,
 		Value:       valueRange.Min + rand.Float64()*(valueRange.Max-valueRange.Min),
-		Timestamp:   time.Now().Format("2006-01-02-15-04-05"),
+		Timestamp:   strconv.FormatInt(time.Now().Unix(), 10),
 	}
 }
 

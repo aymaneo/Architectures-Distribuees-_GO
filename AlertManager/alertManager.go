@@ -88,7 +88,7 @@ func checkThresholdAndAlert(client mqtt.Client, data SensorData, config *Config)
 	}
 
 	if data.Value > threshold {
-		alertMsg := fmt.Sprintf("Alerte ! %s pour %d à l'aéroport %s a dépassé le seuil. Valeur: %.2f - Heure: %s",
+		alertMsg := fmt.Sprintf("Alerte ! %s pour %d à l'aéroport %s a dépassé le seuil. Valeur: %.2f - Timestamp: %s",
 			data.Measurement, data.SensorID, data.AirportCode, data.Value, data.Timestamp)
 		fmt.Println(alertMsg) // Afficher l'alerte dans la console
 

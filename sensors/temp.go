@@ -66,7 +66,7 @@ func simulateSensorData(sensorID int, airportCode, measurement string, valueRang
 }
 
 func main() {
-	config, err := loadConfig("./sensors/config.json")
+	config, err := loadConfig("config.json")
 	if err != nil {
 		fmt.Println("Erreur de chargement de la configuration:", err)
 		os.Exit(1)

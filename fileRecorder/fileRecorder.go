@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -30,7 +29,7 @@ type Config struct {
 }
 
 func loadConfig(path string) (*Config, error) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +43,7 @@ func loadConfig(path string) (*Config, error) {
 
 func main() {
 	var allSensorData []SensorData
-	config, err := loadConfig("./fileRecorder/config.json")
+	config, err := loadConfig("config.json")
 	if err != nil {
 		log.Fatalf("Erreur de chargement de la configuration: %v", err)
 	}
@@ -60,6 +59,7 @@ func main() {
 			return
 		}
 		allSensorData = append(allSensorData, data)
+		fmt.Println("allSensorData : ", allSensorData)
 	})
 
 	client := mqtt.NewClient(opts)
@@ -95,11 +95,10 @@ func main() {
 
 func searchFreeFileName(nameBase string, fileExtension string) string {
 	fullFileName := nameBase + fileExtension
-	for i := 0; ; {
+	for i := 0; ; i++ {
 		// If file already exists
 		if _, err := os.Stat(fullFileName); !errors.Is(err, os.ErrNotExist) {
 			// Look for another file name that is free
-			i++
 			fullFileName = nameBase + strconv.Itoa(i) + fileExtension
 		} else {
 			return fullFileName

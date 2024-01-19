@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -78,8 +79,7 @@ func main() {
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		fmt.Println("Erreur de connexion :", token.Error())
-		os.Exit(1)
+		log.Fatalln("Erreur de connexion :", token.Error())
 	}
 
 	sensorID := rand.Int() // ID de capteur aléatoire

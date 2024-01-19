@@ -42,15 +42,29 @@ func loadConfig(path string) (*Config, error) {
 }
 
 func main() {
-	var allSensorData []SensorData
-	config, err := loadConfig("config.json")
+	config, err := loadConfig("../sensors/config.json")
 	if err != nil {
 		log.Fatalf("Erreur de chargement de la configuration: %v", err)
 	}
-
 	opts := mqtt.NewClientOptions().
 		AddBroker(fmt.Sprintf("%s:%d", config.MqttBroker, config.MqttPort)).
 		SetClientID(config.ClientID)
+
+	freeFileName := searchFreeFileName("../sensorData", ".csv")
+	row := "SensorID,AirportCode,Timestamp,Value,Measurement\n"
+	of, err := os.Create(freeFileName)
+	if err != nil {
+		log.Fatalf("Erreur lors de la tentative de création du fichier %s : %v", freeFileName, err)
+	}
+	_, err = of.Write([]byte(row))
+	if err != nil {
+		log.Fatalf("Erreur lors de la tentative d'écriture dans le fichier %s : %v", freeFileName, err)
+	}
+	err = of.Close()
+	if err != nil {
+		log.Fatalf("Erreur lors de la tentative de fermeture du fichier %s : %v", freeFileName, err)
+	}
+
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
 		var data SensorData
 		err := json.Unmarshal(msg.Payload(), &data)
@@ -58,15 +72,14 @@ func main() {
 			log.Printf("Erreur de décodage JSON: %v\n", err)
 			return
 		}
-		allSensorData = append(allSensorData, data)
-		fmt.Println("allSensorData : ", allSensorData)
+		exportData(freeFileName, ",", &data)
 	})
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatalf("Erreur de connexion MQTT: %v", token.Error())
 	}
-	fmt.Println("Connecté au broker MQTT, en attente de données...")
+	log.Println("Connecté au broker MQTT, en attente de données...")
 
 	topics := map[string]byte{
 		"aeroport/+/Temperature":          0,
@@ -86,9 +99,6 @@ func main() {
 
 	client.Disconnect(1000)
 
-	freeFileName := searchFreeFileName("test", ".csv")
-	exportData(freeFileName, ",", allSensorData)
-
 	//TODO : mettre en place les logs
 	log.Printf("Déconnecté du broker MQTT.") //TODO : vérifier si cette instruction utilise le bon niveau de log
 }
@@ -106,23 +116,22 @@ func searchFreeFileName(nameBase string, fileExtension string) string {
 	}
 }
 
-func exportData(destFilePath string, separator string, data []SensorData) {
-	row := strings.Join([]string{"SensorID", "AirportCode", "Timestamp",
-		"Value", "Measurement"}, separator)
-	err := os.WriteFile(destFilePath, []byte(row), 0666)
+func exportData(destFilePath string, separator string, data *SensorData) {
+	// Extract data from the SensorData struct
+	row := strings.Join([]string{strconv.Itoa(data.SensorID), data.AirportCode,
+		data.Timestamp, strconv.FormatFloat(data.Value, 'f', -1, 64),
+		data.Measurement}, separator) + "\n"
+	log.Println(row)
+	of, err := os.OpenFile(destFilePath, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("openerr : ", err)
 	}
-
-	for _, v := range data {
-		// Extract data from the SensorData struct for this row
-		row = strings.Join([]string{strconv.Itoa(v.SensorID), v.AirportCode,
-			v.Timestamp,
-			strconv.FormatFloat(v.Value, 4, -1, 64),
-			v.Measurement}, separator)
-		err := os.WriteFile(destFilePath, []byte(row), 0666)
-		if err != nil {
-			log.Fatal(err)
-		}
+	_, err = of.WriteString(row)
+	if err != nil {
+		log.Fatal("writeerr :", err)
+	}
+	err = of.Close()
+	if err != nil {
+		log.Fatal("closeerr :", err)
 	}
 }

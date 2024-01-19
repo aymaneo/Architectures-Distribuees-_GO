@@ -91,9 +91,10 @@ func (rec *Receiver) CreateMosquittoClient(broker string, port int, clientId str
 	rec.MqttClient = client
 }
 
-func (rec Receiver) Sub(topic string) {
+func (rec Receiver) Sub(topic string) int {
 	rec.MqttClient.Subscribe(topic, 1, rec.messagePubHandler)
 	fmt.Printf("Subscribed to topic: %s", topic)
+	return 0
 }
 
 type Receiver struct {

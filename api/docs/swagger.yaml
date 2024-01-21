@@ -1,0 +1,138 @@
+definitions:
+  main.MeanMeasurementResponse:
+    properties:
+      mean_value:
+        type: number
+      measurement:
+        type: string
+    type: object
+  main.MeasurementResponse:
+    properties:
+      timestamp:
+        type: string
+      value:
+        type: number
+    type: object
+info:
+  contact: {}
+paths:
+  /api/allMeans/{iata}/{start}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve mean measurements for all sensors at a given location
+        on a specific date
+      parameters:
+      - description: IATA code for the location
+        in: path
+        name: iata
+        required: true
+        type: string
+      - description: Date in YYYY-MM-DD format
+        in: path
+        name: start
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.MeanMeasurementResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: Get All Mean Measurements
+      tags:
+      - measurements
+  /api/mesure/{mesures}/{iata}/{start}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the mean measurement for a given sensor and location on
+        a specific date
+      parameters:
+      - description: Type of measurement
+        in: path
+        name: mesures
+        required: true
+        type: string
+      - description: IATA code for the location
+        in: path
+        name: iata
+        required: true
+        type: string
+      - description: Date in YYYY-MM-DD format
+        in: path
+        name: start
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MeasurementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: Get Mean Measurement
+      tags:
+      - measurements
+  /api/mesure/{mesures}/{iata}/{start}/{end}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve measurements for a given sensor, location, and time range
+      parameters:
+      - description: Type of measurement
+        in: path
+        name: mesures
+        required: true
+        type: string
+      - description: IATA code for the location
+        in: path
+        name: iata
+        required: true
+        type: string
+      - description: Start time in YYYY-MM-DD-HH format
+        in: path
+        name: start
+        required: true
+        type: string
+      - description: End time in YYYY-MM-DD-HH format
+        in: path
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.MeasurementResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: Get Measurements
+      tags:
+      - measurements
+swagger: "2.0"

@@ -1,0 +1,136 @@
+{
+  "captors": [
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "13234421"
+    },
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "CDG",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "132341"
+    },
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "NTE",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "13234221"
+    },
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "1234221"
+    },
+    {
+      "name": "vent",
+      "unit": "km/h",
+      "uprange": 120.0,
+      "lowrange": 0.0,
+      "incr": 0.5,
+      "defaultValue": 15.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "213234421"
+    },
+    {
+      "name": "vent",
+      "unit": "km/h",
+      "uprange": 120.0,
+      "lowrange": 0.0,
+      "incr": 0.5,
+      "defaultValue": 15.0,
+      "Airport": "CDG",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "2132341"
+    },
+    {
+      "name": "vent",
+      "unit": "km/h",
+      "uprange": 120.0,
+      "lowrange": 0.0,
+      "incr": 0.5,
+      "defaultValue": 15.0,
+      "Airport": "NTE",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "213234221"
+    },
+    {
+      "name": "vent",
+      "unit": "km/h",
+      "uprange": 120.0,
+      "lowrange": 0.0,
+      "incr": 0.5,
+      "defaultValue": 15.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "21234221"
+    },
+    {
+      "name": "pression",
+      "unit": "hPa",
+      "uprange": 1200,
+      "lowrange": 800.0,
+      "incr": 0.5,
+      "defaultValue": 1100.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "313234421"
+    },
+    {
+      "name": "pression",
+      "unit": "hPa",
+      "uprange": 1200,
+      "lowrange": 800.0,
+      "incr": 0.5,
+      "defaultValue": 1100.0,
+      "Airport": "CDG",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "3132341"
+    },
+    {
+      "name": "pression",
+      "unit": "hPa",
+      "uprange": 1200,
+      "lowrange": 800.0,
+      "incr": 0.5,
+      "defaultValue": 1100.0,
+      "Airport": "NTE",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "313234221"
+    },
+    {
+      "name": "pression",
+      "unit": "hPa",
+      "uprange": 1200,
+      "lowrange": 800.0,
+      "incr": 0.5,
+      "defaultValue": 1100.0,
+      "Airport": "TLS",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "31234221"
+    }
+  ]
+}

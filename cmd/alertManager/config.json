@@ -3,9 +3,9 @@
   "mqtt_port": 1883,
   "client_id": "alert_manager",
   "thresholds": {
-    "Temperature": 30.0,
-    "Wind speed": 20.0,
-    "Atmospheric pressure": 1000.0
+    "temperature": 20.0,
+    "vent": 40.0,
+    "pression": 1100.0
   },
-  "alert_topic": "aeroport/alerts"
+  "alert_topic": "/Alertes"
 }

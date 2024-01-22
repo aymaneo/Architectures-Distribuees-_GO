@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "aymane.com/main/api/docs"
+	//_ "aymane.com/main/api/docs"
 	"context"
 	"encoding/json"
 	"fmt"

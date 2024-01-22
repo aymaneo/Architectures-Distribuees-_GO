@@ -7,16 +7,17 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type SensorData struct {
-	SensorID    int     `json:"sensor_id"`
-	AirportCode string  `json:"airport_code"`
-	Measurement string  `json:"measurement"`
-	Value       float64 `json:"value"`
-	Timestamp   string  `json:"timestamp"`
+	Valeur    float64 `json:"valeur"`
+	Timestamp int     `json:"time"`
+	Mesure    string
+	SensorID  string
+	IATA      string
 }
 
 type Config struct {
@@ -41,7 +42,7 @@ func loadConfig(path string) (*Config, error) {
 }
 
 func main() {
-	config, err := loadConfig("./alertManager/config.json")
+	config, err := loadConfig("./cmd/alertManager/config.json")
 	if err != nil {
 		log.Fatalf("Erreur de chargement de la configuration: %v", err)
 	}
@@ -54,6 +55,10 @@ func main() {
 			log.Printf("Erreur de décodage JSON: %v\n", err)
 			return
 		}
+		var TopicArray []string = strings.Split(msg.Topic(), "/")
+		data.IATA = TopicArray[2]
+		data.Mesure = TopicArray[3]
+		data.SensorID = TopicArray[4]
 		checkThresholdAndAlert(client, data, config)
 	})
 
@@ -61,12 +66,11 @@ func main() {
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatalf("Erreur de connexion MQTT: %v", token.Error())
 	}
-	fmt.Println("Connecté au broker MQTT, en attente de données...")
 
 	topics := map[string]byte{
-		"aeroport/+/Temperature":          0,
-		"aeroport/+/Wind speed":           0,
-		"aeroport/+/Atmospheric pressure": 0,
+		"/Airport/+/temperature/#": 0,
+		"/Airport/+/vent/#":        0,
+		"/Airport/+/pression/#":    0,
 	}
 	if token := client.SubscribeMultiple(topics, nil); token.Wait() && token.Error() != nil {
 		log.Fatalf("Erreur de souscription: %v", token.Error())
@@ -81,19 +85,23 @@ func main() {
 	fmt.Println("Déconnecté du broker MQTT.")
 }
 
-func checkThresholdAndAlert(client mqtt.Client, data SensorData, config *Config) {
-	threshold, ok := config.Thresholds[data.Measurement]
+func checkThresholdAndAlert(client mqtt.Client, data SensorData, config *Config) bool {
+	threshold, ok := config.Thresholds[data.Mesure]
 	if !ok {
-		return // Pas de seuil défini pour ce type de mesure
+		fmt.Println("pas de seuil")
+		return false // Pas de seuil défini pour ce type de mesure
 	}
-
-	if data.Value > threshold {
-		alertMsg := fmt.Sprintf("Alerte ! %s pour %d à l'aéroport %s a dépassé le seuil. Valeur: %.2f - Timestamp: %s",
-			data.Measurement, data.SensorID, data.AirportCode, data.Value, data.Timestamp)
+	if data.Valeur > threshold {
+		alertMsg := fmt.Sprintf("Alerte ! %s pour %s à l'aéroport %s a dépassé le seuil. Valeur: %.2f - Timestamp UNIX: %d",
+			data.Mesure, data.SensorID, data.IATA, data.Valeur, data.Timestamp)
 		fmt.Println(alertMsg) // Afficher l'alerte dans la console
 
 		// Publier l'alerte sur le topic d'alerte
 		token := client.Publish(config.AlertTopic, 0, false, alertMsg)
 		token.Wait()
+		return true
+	} else {
+		fmt.Println("ne depasse pas ...")
+		return false
 	}
 }

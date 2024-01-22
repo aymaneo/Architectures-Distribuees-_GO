@@ -18,20 +18,11 @@ func main() {
 	var IdClient = "go_mqtt_client"
 
 	var influxClient = receiverClass.CreateInfluxClient(dbToken, dbURL, org, bucket)
-	if influxClient == nil {
-		panic("fail InfluxClient")
-	}
 	influxClient.CreateMosquittoClient(broker, port, IdClient)
-	if influxClient.MqttClient == nil {
-		panic("fail MQTTClient")
-	}
-	influxClient.Sub("/#")
 
+	influxClient.Sub("/#")
 	for 1 > 0 {
 
 	}
-
-	//publish(client)
-
 	influxClient.MqttClient.Disconnect(250)
 }

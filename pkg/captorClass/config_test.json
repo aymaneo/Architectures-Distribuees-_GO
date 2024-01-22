@@ -1,0 +1,26 @@
+{
+  "captors": [
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "ALC",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "test13234421"
+    },
+    {
+      "name": "temperature",
+      "unit": "°C",
+      "uprange": 50.0,
+      "lowrange": -10.0,
+      "incr": 0.15,
+      "defaultValue": 22.0,
+      "Airport": "MAD",
+      "BrokerURI": "tcp://158.178.194.137:1883",
+      "MQTTId" : "132341"
+    }
+  ]
+}

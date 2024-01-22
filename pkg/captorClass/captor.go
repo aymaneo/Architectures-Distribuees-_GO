@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"io/ioutil"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -27,6 +29,26 @@ func connect(brokerURI string, clientId string) mqtt.Client {
 		return nil
 	} else {
 		return client
+	}
+}
+
+func ArgsToCaptor(liste []string) (*Captor, int64) {
+	if len(liste) != 11 {
+		fmt.Println("Attention il manque des paramètres ! Voici comment utiliser la commande : ")
+		//                                      1            2      3         4          5          6       7       8         9           10
+		fmt.Println("go run senderCLI.go [typeMesure] [unité] [ValMax] [ValMin] [incrément] [ValDeft] [IATA] [idMQTT] [MQTTURI] [tmpAttSec]")
+		//fmt.Println(liste)
+		return nil, 0
+	} else {
+		uprange, _ := strconv.ParseFloat(liste[3], 64)
+		lowrange, _ := strconv.ParseFloat(liste[4], 64)
+		incr, _ := strconv.ParseFloat(liste[5], 64)
+		defaultvalue, _ := strconv.ParseFloat(liste[6], 64)
+		var Type = InitCaptorType(liste[1], liste[2], uprange, lowrange, incr, defaultvalue)
+
+		var capteur = InitCaptor(liste[7], Type, liste[8], liste[9])
+		var waitTime, _ = strconv.ParseInt(liste[10], 10, 64)
+		return capteur, waitTime
 	}
 }
 
@@ -126,4 +148,48 @@ func InitCaptorType(name string, unit string, uprange float64, lowrange float64,
 	ob.IncrementRange = incr
 	ob.DefaultValue = defaultvalue
 	return ob
+}
+
+//partie pour avoir des capteurs à partir d'un fichier JSON
+
+type captorData struct {
+	Name         string  `json:"name"`
+	Unit         string  `json:"unit"`
+	Uprange      float64 `json:"uprange"`
+	Lowrange     float64 `json:"lowrange"`
+	Incr         float64 `json:"incr"`
+	DefaultValue float64 `json:"defaultValue"`
+	Airport      string  `json:"Airport"`
+	BrokerURI    string  `json:"BrokerURI"`
+	MQTTId       string  `json:"MQTTId"`
+}
+
+type CaptorConfig struct {
+	Captors []captorData `json:"captors"`
+}
+
+type ListeCapteurs struct {
+	Cpt []*Captor
+}
+
+func LoadConfig(path string) (CaptorConfig, error) {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return CaptorConfig{}, err
+	}
+	var captorConfig CaptorConfig
+	err2 := json.Unmarshal(file, &captorConfig)
+	if err2 != nil {
+		return CaptorConfig{}, err2
+	}
+	return captorConfig, nil
+}
+
+func ListOfCaptors(config CaptorConfig) ListeCapteurs {
+	var listeCapteurs ListeCapteurs
+	for i, s := range config.Captors {
+		fmt.Println(i, s.Airport)
+		listeCapteurs.Cpt = append(listeCapteurs.Cpt, InitCaptor(s.Airport, InitCaptorType(s.Name, s.Unit, s.Uprange, s.Lowrange, s.Incr, s.DefaultValue), s.MQTTId, s.BrokerURI))
+	}
+	return listeCapteurs
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -40,7 +41,7 @@ func loadConfig(path string) (*Config, error) {
 }
 
 func main() {
-	config, err := loadConfig("./AlertManager/config.json")
+	config, err := loadConfig(filepath.FromSlash("./AlertManager/config.json"))
 	if err != nil {
 		log.Fatalf("Erreur de chargement de la configuration: %v", err)
 	}
@@ -60,7 +61,7 @@ func main() {
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatalf("Erreur de connexion MQTT: %v", token.Error())
 	}
-	fmt.Println("Connecté au broker MQTT, en attente de données...")
+	log.Println("Connecté au broker MQTT, en attente de données...")
 
 	topics := map[string]byte{
 		"aeroport/+/Temperature":          0,

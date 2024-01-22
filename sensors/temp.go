@@ -110,7 +110,7 @@ func publishSensorData(client mqtt.Client, data SensorData, qos byte) {
 		return
 	}
 
-	topic := fmt.Sprintf("aeroport/%s/%s", data.AirportCode, data.Measurement)
+	topic := fmt.Sprintf("/aeroport/%s/%s", data.AirportCode, data.Measurement)
 	token := client.Publish(topic, qos, false, jsonData)
 	token.Wait()
 

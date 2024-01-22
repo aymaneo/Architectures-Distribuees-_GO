@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "aymane.com/main/api/docs"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -32,9 +34,7 @@ func main() {
 
 	r.HandleFunc("/api/allMeans/{iata}/{start}", GetAllMeans).Methods("GET")
 
-	r.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("swagger.json"), // The url pointing to API definition
-	))
+	r.PathPrefix("/swagger/").Handler(httpSwagger.Handler())
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
@@ -62,8 +62,11 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 	mesures := vars["mesures"]
 	const layout = "2006-01-02-15"
 
-	start, _ := time.Parse(layout, vars["start"])
-	end, _ := time.Parse(layout, vars["end"])
+	decodeStartDate, _ := url.QueryUnescape(vars["start"])
+	decodeEndDate, _ := url.QueryUnescape(vars["end"])
+
+	start, _ := time.Parse(layout, decodeStartDate)
+	end, _ := time.Parse(layout, decodeEndDate)
 
 	fmt.Println(start, end, iata)
 	formattedDateStart := start.Format(time.RFC3339)
@@ -143,7 +146,9 @@ func GetMean(w http.ResponseWriter, r *http.Request) {
 	mesures := vars["mesures"]
 	const layout = "2006-01-02"
 
-	start, err := time.Parse(layout, vars["start"])
+	decodeDate, _ := url.QueryUnescape(vars["start"])
+
+	start, err := time.Parse(layout, decodeDate)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error parsing start time: %v", err), http.StatusBadRequest)
 		return
@@ -171,8 +176,8 @@ func GetMean(w http.ResponseWriter, r *http.Request) {
 	var measurement MeasurementResponse
 	for result.Next() {
 		measurement = MeasurementResponse{
-			Timestamp: formattedDateStart,                //TOSTRING
-			Value:     result.Record().Value().(float64), // Type assert based on your actual data type
+			Timestamp: formattedDateStart,
+			Value:     result.Record().Value().(float64),
 		}
 
 	}
@@ -211,7 +216,11 @@ func GetAllMeans(w http.ResponseWriter, r *http.Request) {
 	iata := vars["iata"]
 	const layout = "2006-01-02"
 
-	start, err := time.Parse(layout, vars["start"])
+	decodeDate, _ := url.QueryUnescape(vars["start"])
+
+	fmt.Println("start: " + decodeDate)
+	fmt.Println("decodedStart: " + vars["start"])
+	start, err := time.Parse(layout, decodeDate)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error parsing start time: %v", err), http.StatusBadRequest)
 		return

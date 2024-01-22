@@ -106,18 +106,16 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// Marshal the response into JSON
+	// Convert response into JSON
 	jsonResponse, err := json.Marshal(measurements)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Set Content-Type header and write the JSON response
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 
-	// Close the client
 	client.Close()
 
 }

@@ -41,7 +41,7 @@ func loadConfig(path string) (*Config, error) {
 }
 
 func main() {
-	config, err := loadConfig("./AlertManager/config.json")
+	config, err := loadConfig("./alertManager/config.json")
 	if err != nil {
 		log.Fatalf("Erreur de chargement de la configuration: %v", err)
 	}

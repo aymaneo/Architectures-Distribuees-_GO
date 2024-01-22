@@ -1,0 +1,11 @@
+{
+  "mqtt_broker": "mqtt://158.178.194.137",
+  "mqtt_port": 1883,
+  "client_id": "alert_manager",
+  "thresholds": {
+    "Temperature": 30.0,
+    "Wind speed": 20.0,
+    "Atmospheric pressure": 1000.0
+  },
+  "alert_topic": "aeroport/alerts"
+}

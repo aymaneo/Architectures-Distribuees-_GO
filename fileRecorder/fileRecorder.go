@@ -43,15 +43,41 @@ func loadConfig(path string) (*Config, error) {
 	return &config, nil
 }
 
+func getOpenFile(filePath string, header string) (*os.File, error) {
+	var of *os.File
+	var err error
+	// if the file does not exist
+	if _, err = os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+		of, err = os.Create(filePath)
+		if err != nil {
+			return nil, errors.New("an error occurred when trying to create the file " +
+				filePath)
+		}
+
+		// Writing CSV header in the .csv file
+		_, err = of.Write([]byte(header))
+		if err != nil {
+			return nil, errors.New("an error occurred when trying to write to the file " +
+				filePath)
+		}
+	} else {
+		of, err = os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return nil, errors.New("an error occurred when trying to open the file " +
+				filePath)
+		}
+	}
+	return of, err
+}
+
 func main() {
 	// First second of the last recorded date (in epoch format)
-	var lastRecordedDate int64 = -1
-	csvFilePath := filepath.FromSlash("../airport-data-1-1-1970.csv")
+	var csvFilePath string = ""
 
 	// Loading configuration
 	config, err := loadConfig(filepath.FromSlash("../sensors/config.json"))
 	if err != nil {
-		log.Fatalf("Erreur de chargement de la configuration: %v", err)
+		log.Fatalf("configuration loading error: %v", err)
 	}
 
 	// Creating MQTT client
@@ -61,37 +87,22 @@ func main() {
 
 	// Setting default MQTT message handler
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
-		data, err := unmarshalMQTTMessage(&msg)
+		sensorData, err := unmarshalMQTTMessage(&msg)
 		if err != nil {
 			log.Fatal("MQTT message unmarshalling error")
 		}
 
-		// If this is the first message of the day
-		if msgTimeStamp, _ := strconv.Atoi(data.Timestamp); int64(msgTimeStamp)-lastRecordedDate >= 86400 {
-			// Update the last recorded date and the path of the .csv file to write to
-			lastRecordedDate = int64(msgTimeStamp - (msgTimeStamp % 86400))
-			lastRecordedTime := time.Unix(lastRecordedDate, 0)
-			csvFilePath = fmt.Sprintf("../airport-data-%d-%d-%d.csv", lastRecordedTime.Day(),
-				lastRecordedTime.Month(), lastRecordedTime.Year())
-			csvFilePath = filepath.FromSlash(csvFilePath)
-
-			// Writing CSV header in the new .csv file
-			row := "Timestamp,AirportCode,SensorID,Measurement,Value\n"
-			of, err := os.Create(csvFilePath)
-			if err != nil {
-				log.Fatalf("An error occurred when trying to create the file %s : %v", csvFilePath, err)
-			}
-			_, err = of.Write([]byte(row))
-			if err != nil {
-				log.Fatalf("An error occurred when trying to write to the file %s : %v", csvFilePath, err)
-			}
-			err = of.Close()
-			if err != nil {
-				log.Fatalf("An error occurred when trying to close the file %s : %v", csvFilePath, err)
-			}
+		// Identifying where to write the data (what day is it from ?)
+		msgTimestamp, err := strconv.Atoi(sensorData.Timestamp)
+		if err != nil {
+			log.Fatalf("error when trying to parse sensorData timestamp : %v", err)
 		}
+		var msgDate time.Time = time.Unix(int64(msgTimestamp), 0)
+		csvFilePath = fmt.Sprintf("../airport-data-%d-%d-%d.csv", msgDate.Day(),
+			msgDate.Month(), msgDate.Year())
+		csvFilePath = filepath.FromSlash(csvFilePath)
 
-		exportData(csvFilePath, ",", &data)
+		exportData(csvFilePath, ",", &sensorData)
 	})
 
 	// Connecting to the MQTT broker
@@ -105,60 +116,72 @@ func main() {
 		"/Airport/#": 0,
 	}
 	if token := client.SubscribeMultiple(topics, nil); token.Wait() && token.Error() != nil {
-		log.Fatalf("Subscription error: %v", token.Error())
+		log.Fatalf("subscription error : %v", token.Error())
 	}
-
-	//TODO : traduire tout le code en anglais (commentaires, messages de log, etc... inclus ?)
 
 	// Waiting for the stop signals for a clean termination.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 	client.Disconnect(1000)
-	//TODO : mettre en place les logs
-	log.Printf("Déconnecté du broker MQTT.") //TODO : vérifier si cette instruction utilise le bon niveau de log
+	log.Printf("Deconnected from MQTT broker.")
 }
 
 func unmarshalMQTTMessage(msg *mqtt.Message) (SensorData, error) {
-	var data SensorData
+	var sensorData SensorData
 	var msgJsonData struct {
-		Value float64 `json:"valeur"`
-		Time  int     `json:"time"`
+		Value     float64 `json:"valeur"`
+		Timestamp int     `json:"time"`
 	}
+
 	err := json.Unmarshal((*msg).Payload(), &msgJsonData)
 	if err != nil {
-		log.Printf("Erreur de décodage : %v\n", err)
+		log.Printf("MQTT message unmarshalling error : %v\n", err)
 		return SensorData{}, errors.New("an error occurred " +
 			"when trying to unmarshal an MQTT message")
 	}
+
+	// Building the SensorData structure with the received data
 	msgTopicElems := strings.Split((*msg).Topic(), "/")
-	data.SensorID, _ = strconv.Atoi(msgTopicElems[3])
-	data.AirportCode = msgTopicElems[1]
-	data.Timestamp = strconv.Itoa(msgJsonData.Time)
-	data.Value = msgJsonData.Value
-	data.Measurement = msgTopicElems[2]
-	return data, nil
+	sensorData.SensorID, err = strconv.Atoi(msgTopicElems[4])
+	if err != nil {
+		log.Printf("SensorID parsing error : %v", err)
+		return SensorData{}, errors.New("an error occurred " +
+			"when trying to parse an incoming SensorID")
+	}
+	sensorData.AirportCode = msgTopicElems[2]
+	sensorData.Timestamp = strconv.Itoa(msgJsonData.Timestamp)
+	sensorData.Value = msgJsonData.Value
+	sensorData.Measurement = msgTopicElems[3]
+
+	return sensorData, nil
 }
 
 func exportData(destFilePath string, separator string, data *SensorData) {
-	// Extract data from the SensorData struct
+	of, err := getOpenFile(destFilePath,
+		strings.Join(
+			[]string{"Timestamp", "AirportCode", "SensorID", "Measurement", "Value"},
+			separator)+"\n")
+	if err != nil {
+		log.Fatalf("an error occurred when trying to get open file %s : %v",
+			destFilePath, err)
+	}
+	// Extract data to be written from the SensorData struct
 	row := strings.Join(
 		[]string{
 			data.Timestamp, data.AirportCode, strconv.Itoa(data.SensorID),
 			data.Measurement,
 			strconv.FormatFloat(data.Value, 'f', -1, 64),
 		}, separator) + "\n"
-	log.Println("Message data saved : " + row)
-	of, err := os.OpenFile(destFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal("An error occurred when trying to open the file "+destFilePath+" : ", err)
-	}
 	_, err = of.Write([]byte(row))
 	if err != nil {
-		log.Fatal("An error occurred when trying to write to the file "+destFilePath+" : ", err)
+		log.Fatalf("an error occurred when trying to write to the file %s : %v",
+			destFilePath, err)
 	}
 	err = of.Close()
 	if err != nil {
-		log.Fatal("An error occurred when trying to close the file "+destFilePath+" : ", err)
+		log.Fatalf("an error occurred when trying to close the file %s : %v",
+			destFilePath, err)
 	}
+	log.Printf("Message data %s recorded to %s", row, destFilePath)
 }

@@ -98,7 +98,7 @@ func main() {
 			log.Fatalf("error when trying to parse sensorData timestamp : %v", err)
 		}
 		var msgDate time.Time = time.Unix(int64(msgTimestamp), 0)
-		csvFilePath = fmt.Sprintf("../csvData/%s-airport-data-%d-%d-%d.csv",
+		csvFilePath = fmt.Sprintf("../%s-airport-data-%d-%d-%d.csv",
 			sensorData.AirportCode, msgDate.Day(), msgDate.Month(), msgDate.Year())
 		csvFilePath = filepath.FromSlash(csvFilePath)
 

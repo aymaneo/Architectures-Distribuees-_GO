@@ -1,0 +1,5 @@
+{
+  "mqtt_broker": "mqtt://158.178.194.137",
+  "mqtt_port": 1883,
+  "client_id": "fileRecorder_client"
+}

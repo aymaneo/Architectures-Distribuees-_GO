@@ -21,6 +21,6 @@ Ce dépôt contient le code pour une API dédiée à la surveillance des conditi
 ## Comment démarrer
 1. **Initialisation** : Clonez le dépôt et installez les dépendances.
 2. **Configuration** : Configurez votre instance InfluxDB et assurez-vous qu'elle est accessible depuis l'API.
-3. **Lancement** : Exécutez le serveur avec `go run main.go`.
+3. **Lancement** : Exécutez le serveur avec `go run main.go`. Pour activer le fileRecorder, le lancer avec `go run fileRecorder.go`.
 
-L'API est documentée avec Swagger 
+L'API est documentée avec Swagger.

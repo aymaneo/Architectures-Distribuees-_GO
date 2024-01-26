@@ -7,6 +7,7 @@ Ce dépôt contient le code pour une API dédiée à la surveillance des conditi
 - **Récupération des Mesures** : Permet d'obtenir des mesures en temps réel ou historiques pour des périodes spécifiques.
 - **Calcul de la Moyenne** : Fournit la valeur moyenne des mesures pour une journée donnée.
 - **Accès aux Moyennes Globales** : Accès aux moyennes de toutes les mesures sur une journée spécifique.
+- **Export au format CSV** : Export des mesures publiées au format CSV en temps réel (un fichier CSV par ville et par jour).
 
 ## Dépendances
 - **InfluxDB** : Base de données NoSQL pour le stockage des mesures.
